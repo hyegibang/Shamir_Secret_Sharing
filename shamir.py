@@ -105,7 +105,7 @@ class SSS(object):
 
     def reconstruct_secret(self, shares):
         """
-        Reconstructs a shared secret, given at least self.k of the proper shares
+        Reconstructs a shared secret, given at least k of the proper shares
         """
 
         if len(shares) < self.k:
