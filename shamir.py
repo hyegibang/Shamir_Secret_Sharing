@@ -40,9 +40,19 @@ class SSS(object):
         return num * inv
 
     @staticmethod
+    def PI(vals):
+        '''
+        Calculate product of a series of numbers
+        '''
+        accum = 1
+        for v in vals:
+            accum *= v
+        return accum
+
+    @staticmethod
     def _lagrange_interpolate(x_s, y_s, p):
         '''
-        given n (x, y) points; k points will define a polynomial of up to kth order.
+        Given n (x, y) points; k points will define a polynomial of up to kth order.
         and return the y-intercept of the polynomial
         '''
 
@@ -52,22 +62,15 @@ class SSS(object):
         # Asserk that all of the points are distinct
         assert k == len(set(x_s)), "points must be distinct"
 
-        # Function to calculate product of a series of numbers
-        def PI(vals):
-            accum = 1
-            for v in vals:
-                accum *= v
-            return accum
-
         nums = []
         dens = []
         for i in range(k):
             others = list(x_s) # get all x values
             cur = others.pop(i) # pop off the one for the numerator
             # Manually create common denominator
-            nums.append(PI(o for o in others)) # numerator is mult. of all but popped
-            dens.append(PI(o - cur for o in others)) # mult. all denominators
-        den = PI(dens) # mult. all denominators to get GCD
+            nums.append(SSS.PI(o for o in others)) # numerator is mult. of all but popped
+            dens.append(SSS.PI(o - cur for o in others)) # mult. all denominators
+        den = SSS.PI(dens) # mult. all denominators to get GCD
         num = sum([SSS._divmod(nums[i] * den * y_s[i] % p, dens[i], p)
                    for i in range(k)]) # multiply by common dinominator and weight by y before dividing each numerator by its corresponding denominator
         return (SSS._divmod(num, den, p) + p) % p # return lin
