@@ -23,6 +23,7 @@ class SSS(object):
             Poly([-1 * x[m], 1]) / Poly([x[j] - x[m]])
             for m in range(k) if m != j
         ]
+        print(polys)
 
         return reduce(lambda acc, p: acc * p, polys, 1)
     @staticmethod
@@ -46,8 +47,13 @@ class SSS(object):
         self.k = k
         self.p = p
 
-        production_coefs = [1234, 166, 94]
+        #production_coefs = [1234, 166, 94]
+        production_coefs = [S]
+        for coef in range(k-1):
+        	production_coefs.append(randint(1,p-1))
+
         self.production_poly = Poly(production_coefs)
+        print(self.production_poly)
 
     def construct_shares(self):
         """
@@ -73,25 +79,26 @@ class SSS(object):
 
         return SSS.lagrangePolynomial(x, y, self.k).coef[0] % self.p
 
+def to_bytes(n, length, endianess='big'):
+    h = '%x' % n
+    s = ('0'*(len(h) % 2) + h).zfill(length*2).decode('hex')
+    return s if endianess == 'big' else s[::-1]
 
 if __name__ == "__main__":
 
-    m = "hello "
+    m = "hello"
     mBytes = m.encode("utf-8")
-    mInt = int.from_bytes(mBytes, byteorder = "big")
-    pring(mInt)
-    S = 1
+    mInt = int(mBytes.encode('hex'), 16)
+    print(mInt)
+
+    mBytes2 = to_bytes(mInt,((mInt.bit_length() + 7) // 8))
+    m2 = mBytes2.decode("utf-8")
+
+    S = mInt
     n = 6
     k = 3
-    p = 1613
+    p = 2 ** 127 - 1
 
-    sss = SSS(S, n, k, p)    #
-
+    sss = SSS(S, n, k, p)
     y = sss.construct_shares()
-    print(y)
-
-
-    # shares = [(1, 1494), (2, 329), (3, 965)]
-    #
-    # print(sss.reconstruct_secret(shares))
-    # => 1234
+    print(sss.reconstruct_secret(y[0:k]))
