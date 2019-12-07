@@ -39,55 +39,38 @@ class SSS(object):
         inv, _ = SSS._extended_gcd(den, p)
         return num * inv
 
-    # @staticmethod
-    # def lagrangePolynomialBasis(j, x, k, p):
-    #     """
-    #     Create a Lagrange basis polynomial
-    #     j = current index of basis
-    #     x = array of x values of the points [x1, x2, x3, ..., xk]
-    #     k = threshold number of shares
-    #     """
-    #     polys = [
-    #         Poly([-1 * x[m], 1]) / Poly([x[j] - x[m]])
-    #         for m in range(k) if m != j
-    #     ]
-    #
-    #     return reduce(lambda acc, p: acc * p, polys, 1)
-
-    # @staticmethod
-    # def lagrangePolynomial(x, y, k, p):
-    #     """
-    #     Create a linear combination of Lagrange basis polynomials
-    #     """
-    #     result = sum([y[j] * SSS.lagrangeShortCut(j, x, k, p) for j in range(k)])
-    #     print("secret:", result)
-    #     return result
-    #     #return sum([y[j] * SSS.lagrangePolynomialBasis(j, x, k, p) for j in range(k)])
-
     @staticmethod
     def _lagrange_interpolate(x_s, y_s, p):
         '''
-        Find the y-value for the given x, given n (x, y) points;
-        k points will define a polynomial of up to kth order.
+        given n (x, y) points; k points will define a polynomial of up to kth order.
+        and return the y-intercept of the polynomial
         '''
+
+        # number of shares neededis how many points are inputted
         k = len(x_s)
+
+        # Asserk that all of the points are distinct
         assert k == len(set(x_s)), "points must be distinct"
-        def PI(vals):  # upper-case PI -- product of inputs
+
+        # Function to calculate product of a series of numbers
+        def PI(vals):
             accum = 1
             for v in vals:
                 accum *= v
             return accum
-        nums = []  # avoid inexact division
+
+        nums = []
         dens = []
         for i in range(k):
-            others = list(x_s)
-            cur = others.pop(i)
-            nums.append(PI(o for o in others))
-            dens.append(PI(o - cur for o in others))
-        den = PI(dens)
+            others = list(x_s) # get all x values
+            cur = others.pop(i) # pop off the one for the numerator
+            # Manually create common denominator
+            nums.append(PI(o for o in others)) # numerator is mult. of all but popped
+            dens.append(PI(o - cur for o in others)) # mult. all denominators
+        den = PI(dens) # mult. all denominators to get GCD
         num = sum([SSS._divmod(nums[i] * den * y_s[i] % p, dens[i], p)
-                   for i in range(k)])
-        return (SSS._divmod(num, den, p) + p) % p
+                   for i in range(k)]) # multiply by common dinominator and weight by y before dividing each numerator by its corresponding denominator
+        return (SSS._divmod(num, den, p) + p) % p # return lin
 
     def __init__(self, S, n, k, p):
         """
@@ -131,7 +114,10 @@ class SSS(object):
         x = [a for a, b in shares]
         y = [b for a, b in shares]
 
-        return SSS._lagrange_interpolate(x, y, self.p)
+        x_s = x[0:k]
+        y_s = y[0:k]
+
+        return SSS._lagrange_interpolate(x_s, y_s, self.p)
 
 
 def to_bytes(n, length, endianess='big'):
