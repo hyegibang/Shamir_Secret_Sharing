@@ -79,17 +79,14 @@ class SSS(object):
 
 
 if __name__ == "__main__":
+    message = input("Enter your secret: ")
+    n, k, p = input("Enter number of shares, threshold, prime: (separate each number by space)").split()
+    mBytes = message.encode("utf-8")
+    secret = int.from_bytes(mBytes, byteorder = "big")
+    print(secret)
+    print(n,k,p)
 
-    m = "hello "
-    mBytes = m.encode("utf-8")
-    mInt = int.from_bytes(mBytes, byteorder = "big")
-    print(mInt)
-    S = 1
-    n = 6
-    k = 3
-    p = 1613
-
-    sss = SSS(S, n, k, p)    #
+    sss = SSS(secret, int(n), int(k), int(p))    #
 
     y = sss.construct_shares()
     print(y)
