@@ -46,7 +46,11 @@ class SSS(object):
         self.k = k
         self.p = p
 
-        production_coefs = [1234, 166, 94]
+        #production_coefs = [1234, 166, 94]
+        production_coefs = [S]
+        for coef in range(k-1):
+        	production_coefs.append(randint(1,p-1))
+
         self.production_poly = Poly(production_coefs)
 
     def construct_shares(self):
@@ -79,7 +83,7 @@ if __name__ == "__main__":
     m = "hello "
     mBytes = m.encode("utf-8")
     mInt = int.from_bytes(mBytes, byteorder = "big")
-    pring(mInt)
+    print(mInt)
     S = 1
     n = 6
     k = 3
