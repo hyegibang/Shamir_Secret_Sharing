@@ -62,29 +62,40 @@ class SSS(object):
         return num * inv
 
     @staticmethod
-    def _lagrange_interpolate(x, x_s, y_s, p):
+    def PI(vals):
         '''
-        Find the y-value for the given x, given n (x, y) points;
-        k points will define a polynomial of up to kth order.
+        Calculate product of a series of numbers
         '''
+        accum = 1
+        for v in vals:
+            accum *= v
+        return accum
+
+    @staticmethod
+    def _lagrange_interpolate(x_s, y_s, p):
+        '''
+        Given n (x, y) points; k points will define a polynomial of up to kth order.
+        and return the y-intercept of the polynomial
+        '''
+
+        # number of shares neededis how many points are inputted
         k = len(x_s)
+
+        # Asserk that all of the points are distinct
         assert k == len(set(x_s)), "points must be distinct"
-        def PI(vals):  # upper-case PI -- product of inputs
-            accum = 1
-            for v in vals:
-                accum *= v
-            return accum
-        nums = []  # avoid inexact division
+
+        nums = []
         dens = []
         for i in range(k):
-            others = list(x_s)
-            cur = others.pop(i)
-            nums.append(PI(x - o for o in others))
-            dens.append(PI(cur - o for o in others))
-        den = PI(dens)
+            others = list(x_s) # get all x values
+            cur = others.pop(i) # pop off the one for the numerator
+            # Manually create common denominator
+            nums.append(SSS.PI(o for o in others)) # numerator is mult. of all but popped
+            dens.append(SSS.PI(o - cur for o in others)) # mult. all denominators
+        den = SSS.PI(dens) # mult. all denominators to get GCD
         num = sum([SSS._divmod(nums[i] * den * y_s[i] % p, dens[i], p)
-                   for i in range(k)])
-        return (SSS._divmod(num, den, p) + p) % p
+                   for i in range(k)]) # multiply by common dinominator and weight by y before dividing each numerator by its corresponding denominator
+        return (SSS._divmod(num, den, p) + p) % p # return lin
 
     def construct_shares(self):
         """
@@ -99,7 +110,7 @@ class SSS(object):
 
     def reconstruct_secret(self, shares):
         """
-        Reconstructs a shared secret, given at least self.k of the proper shares
+        Reconstructs a shared secret, given at least k of the proper shares
         """
 
         if len(shares) < self.k:
@@ -108,7 +119,10 @@ class SSS(object):
         x = [a for a, b in shares]
         y = [b for a, b in shares]
 
-        return SSS._lagrange_interpolate(0, x, y, self.p)
+        x_s = x[0:k]
+        y_s = y[0:k]
+
+        return SSS._lagrange_interpolate(x_s, y_s, self.p)
 
     def decode_value(self,result):
         def to_bytes(n, length, endianess='big'):
