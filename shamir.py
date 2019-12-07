@@ -23,7 +23,6 @@ class SSS(object):
             Poly([-1 * x[m], 1]) / Poly([x[j] - x[m]])
             for m in range(k) if m != j
         ]
-        print(polys)
 
         return reduce(lambda acc, p: acc * p, polys, 1)
     @staticmethod
@@ -85,18 +84,24 @@ def to_bytes(n, length, endianess='big'):
     return s if endianess == 'big' else s[::-1]
 
 if __name__ == "__main__":
-    p = 2 ** 127 - 1
+    p = (2 ** 31) - 1
+
     m = raw_input("Enter Your Secret: ")
     n, k = raw_input("Enter number of shares and threshold separate by space: ").split()
     n, k = int(n), int(k)
     mBytes = m.encode("utf-8")
     mInt = int(mBytes.encode('hex'), 16)
 
-    # mBytes2 = to_bytes(mInt,((mInt.bit_length() + 7) // 8))
+    # mBytes2 = to_bytes(result,((result.bit_length() + 7) // 8))
     # m2 = mBytes2.decode("utf-8")
+    # print(mInt == m2)
 
-    S = mInt % p
+    S = mInt
+
     print("Secret encoded is:", S)
     sss = SSS(S, n, k, p)
     y = sss.construct_shares()
-    print(sss.reconstruct_secret(y[0:k]))
+    print((y[0:k]))
+    result = int(sss.reconstruct_secret(y[0:k]))
+    print(result)
+    print(result == S)
