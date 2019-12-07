@@ -65,7 +65,7 @@ class SSS(object):
     #     #return sum([y[j] * SSS.lagrangePolynomialBasis(j, x, k, p) for j in range(k)])
 
     @staticmethod
-    def _lagrange_interpolate(x, x_s, y_s, p):
+    def _lagrange_interpolate(x_s, y_s, p):
         '''
         Find the y-value for the given x, given n (x, y) points;
         k points will define a polynomial of up to kth order.
@@ -82,8 +82,8 @@ class SSS(object):
         for i in range(k):
             others = list(x_s)
             cur = others.pop(i)
-            nums.append(PI(x - o for o in others))
-            dens.append(PI(cur - o for o in others))
+            nums.append(PI(o for o in others))
+            dens.append(PI(o - cur for o in others))
         den = PI(dens)
         num = sum([SSS._divmod(nums[i] * den * y_s[i] % p, dens[i], p)
                    for i in range(k)])
@@ -131,7 +131,7 @@ class SSS(object):
         x = [a for a, b in shares]
         y = [b for a, b in shares]
 
-        return SSS._lagrange_interpolate(0, x, y, self.p)
+        return SSS._lagrange_interpolate(x, y, self.p)
 
 
 def to_bytes(n, length, endianess='big'):
