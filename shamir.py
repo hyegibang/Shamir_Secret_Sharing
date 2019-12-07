@@ -148,10 +148,6 @@ if __name__ == "__main__":
     mBytes = m.encode("utf-8")
     mInt = int(mBytes.encode('hex'), 16)
 
-    # mBytes2 = to_bytes(result,((result.bit_length() + 7) // 8))
-    # m2 = mBytes2.decode("utf-8")
-    # print(mInt == m2)
-
     S = mInt
 
     print("Secret encoded is:", S)
@@ -159,4 +155,10 @@ if __name__ == "__main__":
     y = sss.construct_shares()
     print("shares to reconstruct:", (y[0:k]))
     result = int(sss.reconstruct_secret(y[0:k]))
+    print(result)
+
+
+    mBytes2 = to_bytes(result,((result.bit_length() + 7) // 8))
+    m2 = mBytes2.decode("utf-8")
+    print(m2)
     print(result == S)
