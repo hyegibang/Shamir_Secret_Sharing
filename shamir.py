@@ -9,6 +9,28 @@ class SSS(object):
     This class serves as an implementation of Shamir's Secret Sharing scheme,
     which provides methods for managing shared secrets
     """
+    def __init__(self, secret, n, k, p):
+        """
+        S: secret
+        n: total number of shares
+        k: recovery threshold
+        p: prime, where p > S and p > n
+        """
+
+        self.n = n
+        self.k = k
+        self.p = p
+
+        mBytes = secret.encode("utf-8")
+        Sval = int(mBytes.encode('hex'), 16)
+        self.S = Sval
+
+        production_coefs = [Sval]
+        for coef in range(k-1):
+        	production_coefs.append(randint(1,p-1))
+
+        self.production_poly = Poly(production_coefs)
+
     @staticmethod
     def _extended_gcd(a, b):
         '''
@@ -39,31 +61,6 @@ class SSS(object):
         inv, _ = SSS._extended_gcd(den, p)
         return num * inv
 
-    # @staticmethod
-    # def lagrangePolynomialBasis(j, x, k, p):
-    #     """
-    #     Create a Lagrange basis polynomial
-    #     j = current index of basis
-    #     x = array of x values of the points [x1, x2, x3, ..., xk]
-    #     k = threshold number of shares
-    #     """
-    #     polys = [
-    #         Poly([-1 * x[m], 1]) / Poly([x[j] - x[m]])
-    #         for m in range(k) if m != j
-    #     ]
-    #
-    #     return reduce(lambda acc, p: acc * p, polys, 1)
-
-    # @staticmethod
-    # def lagrangePolynomial(x, y, k, p):
-    #     """
-    #     Create a linear combination of Lagrange basis polynomials
-    #     """
-    #     result = sum([y[j] * SSS.lagrangeShortCut(j, x, k, p) for j in range(k)])
-    #     print("secret:", result)
-    #     return result
-    #     #return sum([y[j] * SSS.lagrangePolynomialBasis(j, x, k, p) for j in range(k)])
-
     @staticmethod
     def _lagrange_interpolate(x, x_s, y_s, p):
         '''
@@ -89,26 +86,6 @@ class SSS(object):
                    for i in range(k)])
         return (SSS._divmod(num, den, p) + p) % p
 
-    def __init__(self, S, n, k, p):
-        """
-        S: secret
-        n: total number of shares
-        k: recovery threshold
-        p: prime, where p > S and p > n
-        """
-
-        self.S = S
-        self.n = n
-        self.k = k
-        self.p = p
-
-        #production_coefs = [1234, 166, 94]
-        production_coefs = [S]
-        for coef in range(k-1):
-        	production_coefs.append(randint(1,p-1))
-
-        self.production_poly = Poly(production_coefs)
-
     def construct_shares(self):
         """
         Used to generate shares in a production environment, based on a
@@ -133,32 +110,32 @@ class SSS(object):
 
         return SSS._lagrange_interpolate(0, x, y, self.p)
 
+    def decode_value(self,result):
+        def to_bytes(n, length, endianess='big'):
+            h = '%x' % n
+            s = ('0'*(len(h) % 2) + h).zfill(length*2).decode('hex')
+            return s if endianess == 'big' else s[::-1]
+        mBytes2 = to_bytes(result,((result.bit_length() + 7) // 8))
+        m2 = mBytes2.decode("utf-8")
+        print("Reconstructed secret is:", m2)
+        print(result == self.S)
 
-def to_bytes(n, length, endianess='big'):
-    h = '%x' % n
-    s = ('0'*(len(h) % 2) + h).zfill(length*2).decode('hex')
-    return s if endianess == 'big' else s[::-1]
+def user_input_encode():
+    secret = raw_input("Enter Your Secret: ")
+    n, k = raw_input("Enter number of shares and threshold separate by space: ").split()
+    n, k = int(n), int(k)
+
+    return secret, n, k
+
 
 if __name__ == "__main__":
     p = (2 ** 127) - 1
 
-    m = raw_input("Enter Your Secret: ")
-    n, k = raw_input("Enter number of shares and threshold separate by space: ").split()
-    n, k = int(n), int(k)
-    mBytes = m.encode("utf-8")
-    mInt = int(mBytes.encode('hex'), 16)
+    secret, n, k = user_input_encode()
 
-    S = mInt
-
-    print("Secret encoded is:", S)
-    sss = SSS(S, n, k, p)
+    print("Secret encoded is:", secret)
+    sss = SSS(secret, n, k, p)
     y = sss.construct_shares()
-    print("shares to reconstruct:", (y[0:k]))
     result = int(sss.reconstruct_secret(y[0:k]))
-    print(result)
 
-
-    mBytes2 = to_bytes(result,((result.bit_length() + 7) // 8))
-    m2 = mBytes2.decode("utf-8")
-    print(m2)
-    print(result == S)
+    sss.decode_value(result)
