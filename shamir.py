@@ -85,20 +85,18 @@ def to_bytes(n, length, endianess='big'):
     return s if endianess == 'big' else s[::-1]
 
 if __name__ == "__main__":
-
-    m = "hello"
+    p = 2 ** 127 - 1
+    m = raw_input("Enter Your Secret: ")
+    n, k = raw_input("Enter number of shares and threshold separate by space: ").split()
+    n, k = int(n), int(k)
     mBytes = m.encode("utf-8")
     mInt = int(mBytes.encode('hex'), 16)
-    print(mInt)
 
-    mBytes2 = to_bytes(mInt,((mInt.bit_length() + 7) // 8))
-    m2 = mBytes2.decode("utf-8")
+    # mBytes2 = to_bytes(mInt,((mInt.bit_length() + 7) // 8))
+    # m2 = mBytes2.decode("utf-8")
 
-    S = mInt
-    n = 6
-    k = 3
-    p = 2 ** 127 - 1
-
+    S = mInt % p
+    print("Secret encoded is:", S)
     sss = SSS(S, n, k, p)
     y = sss.construct_shares()
     print(sss.reconstruct_secret(y[0:k]))
