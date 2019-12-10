@@ -38,7 +38,7 @@ class SSS(object):
             else:
                 poly += str(self.production_poly.coef[i])
 
-        print("Secret Polynomial is: ", poly)
+        print "Secret Polynomial is: ", poly
     @staticmethod
     def _extended_gcd(a, b):
         '''
@@ -139,8 +139,8 @@ class SSS(object):
             return s if endianess == 'big' else s[::-1]
         mBytes2 = to_bytes(result,((result.bit_length() + 7) // 8))
         m2 = mBytes2.decode("utf-8")
-        print("Reconstructed secret is:", m2)
-        print(result == self.S)
+        print "Reconstructed secret is:", m2
+        print "Reconstructed = Original?: ", result == self.S
 
 def user_input_encode():
     secret = raw_input("Enter Your Secret: ")
@@ -154,10 +154,11 @@ if __name__ == "__main__":
 
     secret, n, k = user_input_encode()
 
-    print("Secret encoded is:", secret)
+    print "Secret encoded is:", secret
     sss = SSS(secret, n, k, p)
     y = sss.construct_shares()
-    print("Constructed shares are: ", y)
+    print "----------------------------------------------------------------------------------------------------"
+    print "Constructed shares are: ", y
     result = int(sss.reconstruct_secret(y[0:k]))
 
     sss.decode_value(result)
