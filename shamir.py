@@ -30,7 +30,15 @@ class SSS(object):
         	production_coefs.append(randint(1,p-1))
 
         self.production_poly = Poly(production_coefs)
+        poly = ""
 
+        for i in reversed(range(len(self.production_poly))):
+            if i != 0:
+                poly += (str(self.production_poly.coef[i]) + "*x^" + str(i) + " + ")
+            else:
+                poly += str(self.production_poly.coef[i])
+
+        print("Secret Polynomial is: ", poly)
     @staticmethod
     def _extended_gcd(a, b):
         '''
@@ -141,7 +149,6 @@ def user_input_encode():
 
     return secret, n, k
 
-
 if __name__ == "__main__":
     p = (2 ** 127) - 1
 
@@ -150,6 +157,7 @@ if __name__ == "__main__":
     print("Secret encoded is:", secret)
     sss = SSS(secret, n, k, p)
     y = sss.construct_shares()
+    print("Constructed shares are: ", y)
     result = int(sss.reconstruct_secret(y[0:k]))
 
     sss.decode_value(result)
